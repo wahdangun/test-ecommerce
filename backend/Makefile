@@ -36,7 +36,7 @@ migrate.down:
 migrate.force:
 	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" force $(version)
 
-docker.run: docker.network docker.postgres swag docker.fiber docker.redis migrate.up
+docker.run: docker.network docker.mysql swag docker.fiber docker.redis migrate.up
 
 docker.network:
 	docker network inspect dev-network >/dev/null 2>&1 || \
@@ -54,13 +54,13 @@ docker.fiber: docker.fiber.build
 
 docker.mysql:
 	docker run --rm -d \
-		--name cgapp-postgres \
+		--name cgapp-mysql \
 		--network dev-network \
-		-e POSTGRES_USER=postgres \
-		-e POSTGRES_PASSWORD=password \
-		-e POSTGRES_DB=postgres \
-		-v ${HOME}/dev-postgres/data/:/var/lib/postgresql/data \
-		-p 5432:5432 \
+		-e mysql_USER=root \
+		-e mysql_PASSWORD=L0gitech \
+		-e mysql_DB=testing \
+		-v ${HOME}/dev-mysql/data/:/var/lib/mysql/data \
+		-p 3306:3306 \
 		mysql
 
 docker.redis:

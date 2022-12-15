@@ -16,5 +16,5 @@
     - { role: docker, tags: [docker] }
     - { role: backend, tags: [backend] }
     - { role: redis, tags: [redis] }
-    - { role: postgres, tags: [postgres] }
+    - { role: mysql, tags: [mysql] }
     - { role: traefik, tags: [traefik] }
