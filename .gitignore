@@ -6,7 +6,7 @@
 **/.DS_store
 
 # Go builds
-**/app/
+#**/app/
 **/build/
 
 # Temporary files

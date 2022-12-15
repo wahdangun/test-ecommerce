@@ -52,7 +52,7 @@ docker.fiber: docker.fiber.build
 		-p 5000:5000 \
 		fiber
 
-docker.mysql:
+docker.postgres:
 	docker run --rm -d \
 		--name cgapp-postgres \
 		--network dev-network \
@@ -61,7 +61,7 @@ docker.mysql:
 		-e POSTGRES_DB=postgres \
 		-v ${HOME}/dev-postgres/data/:/var/lib/postgresql/data \
 		-p 5432:5432 \
-		mysql
+		postgres
 
 docker.redis:
 	docker run --rm -d \
