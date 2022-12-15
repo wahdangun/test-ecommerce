@@ -2,7 +2,6 @@ package queries
 
 import (
 	"github.com/create-go-app/fiber-go-template/app/models"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -50,7 +49,7 @@ func (q *BookQueries) GetBooksByAuthor(author string) ([]models.Book, error) {
 }
 
 // GetBook method for getting one book by given ID.
-func (q *BookQueries) GetBook(id uuid.UUID) (models.Book, error) {
+func (q *BookQueries) GetBook(id int) (models.Book, error) {
 	// Define book variable.
 	book := models.Book{}
 
@@ -85,7 +84,7 @@ func (q *BookQueries) CreateBook(b *models.Book) error {
 }
 
 // UpdateBook method for updating book by given Book object.
-func (q *BookQueries) UpdateBook(id uuid.UUID, b *models.Book) error {
+func (q *BookQueries) UpdateBook(id int, b *models.Book) error {
 	// Define query string.
 	query := `UPDATE books SET updated_at = $2, title = $3, author = $4, book_status = $5, book_attrs = $6 WHERE id = $1`
 
@@ -101,7 +100,7 @@ func (q *BookQueries) UpdateBook(id uuid.UUID, b *models.Book) error {
 }
 
 // DeleteBook method for delete book by given ID.
-func (q *BookQueries) DeleteBook(id uuid.UUID) error {
+func (q *BookQueries) DeleteBook(id int) error {
 	// Define query string.
 	query := `DELETE FROM books WHERE id = $1`
 

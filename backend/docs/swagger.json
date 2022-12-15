@@ -429,13 +429,13 @@
                 "author",
                 "book_attrs",
                 "book_status",
-                "id",
                 "title",
                 "user_id"
             ],
             "properties": {
                 "author": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "book_attrs": {
                     "$ref": "#/definitions/models.BookAttrs"
@@ -447,16 +447,17 @@
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -470,7 +471,9 @@
                     "type": "string"
                 },
                 "rating": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 10,
+                    "minimum": 1
                 }
             }
         },
@@ -478,7 +481,6 @@
             "type": "object",
             "required": [
                 "email",
-                "id",
                 "password_hash",
                 "user_role",
                 "user_status"
@@ -488,19 +490,22 @@
                     "type": "string"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "password_hash": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user_role": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 25
                 },
                 "user_status": {
                     "type": "integer"

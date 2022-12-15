@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"time"
+	"strconv"
 
 	"github.com/create-go-app/fiber-go-template/app/models"
 	"github.com/create-go-app/fiber-go-template/pkg/utils"
@@ -10,7 +10,6 @@ import (
 	"github.com/create-go-app/fiber-go-template/platform/database"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // UserSignUp method to create a new user.
@@ -72,9 +71,6 @@ func UserSignUp(c *fiber.Ctx) error {
 	// Create a new user struct.
 	user := &models.User{}
 
-	// Set initialized default data for user:
-	user.ID = uuid.New()
-	user.CreatedAt = time.Now()
 	user.Email = signUp.Email
 	user.PasswordHash = utils.GeneratePassword(signUp.Password)
 	user.UserStatus = 1 // 0 == blocked, 1 == active
@@ -148,7 +144,7 @@ func UserSignIn(c *fiber.Ctx) error {
 		// Return, if user not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "user with the given email is not found",
+			"msg":   "user with the given email is not found" + err.Error() + signIn.Email,
 		})
 	}
 
@@ -173,7 +169,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(foundedUser.ID.String(), credentials)
+	tokens, err := utils.GenerateNewTokens(strconv.Itoa(foundedUser.ID), credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -183,7 +179,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := foundedUser.ID.String()
+	userID := strconv.Itoa(foundedUser.ID)
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -237,7 +233,7 @@ func UserSignOut(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := claims.UserID.String()
+	userID := strconv.Itoa(claims.UserID)
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()

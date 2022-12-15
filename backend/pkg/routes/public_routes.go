@@ -15,7 +15,7 @@ func PublicRoutes(a *fiber.App) {
 	route.Get("/book/:id", controllers.GetBook)       // get one book by ID
 	route.Get("/products", controllers.GetProducts)   // get list of all products
 	route.Get("/product/:id", controllers.GetProduct) // get one product by ID
-	route.Get("/carts", controllers.GetCart)          // get list of all carts
+
 
 	// Routes for POST method:
 	route.Post("/user/sign/up", controllers.UserSignUp) // register a new user

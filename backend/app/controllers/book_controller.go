@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/create-go-app/fiber-go-template/app/models"
@@ -8,7 +9,6 @@ import (
 	"github.com/create-go-app/fiber-go-template/pkg/utils"
 	"github.com/create-go-app/fiber-go-template/platform/database"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // GetBooks func gets all exists books.
@@ -62,7 +62,7 @@ func GetBooks(c *fiber.Ctx) error {
 // @Router /v1/book/{id} [get]
 func GetBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
-	id, err := uuid.Parse(c.Params("id"))
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -175,8 +175,6 @@ func CreateBook(c *fiber.Ctx) error {
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
 
-	// Set initialized default data for book:
-	book.ID = uuid.New()
 	book.CreatedAt = time.Now()
 	book.UserID = claims.UserID
 	book.BookStatus = 1 // 0 == draft, 1 == active

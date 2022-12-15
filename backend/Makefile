@@ -1,9 +1,9 @@
 .PHONY: clean critic security lint test build run
 
 APP_NAME = apiserver
-BUILD_DIR = $(PWD)/build
-MIGRATIONS_FOLDER = $(PWD)/platform/migrations
-DATABASE_URL = postgres://postgres:password@cgapp-postgres/postgres?sslmode=disable
+BUILD_DIR = I:/whatsappscrapping-go/test-ecommerce/backend/build
+MIGRATIONS_FOLDER =  I:/whatsappscrapping-go/test-ecommerce/backend/platform/migrations
+DATABASE_URL = mysql://root:mysqlpw@tcp(localhost:3306)/testing
 
 clean:
 	rm -rf ./build
@@ -39,7 +39,6 @@ migrate.force:
 docker.run: docker.network docker.mysql swag docker.fiber docker.redis migrate.up
 
 docker.network:
-	docker network inspect dev-network >/dev/null 2>&1 || \
 	docker network create -d bridge dev-network
 
 docker.fiber.build:
@@ -56,10 +55,8 @@ docker.mysql:
 	docker run --rm -d \
 		--name cgapp-mysql \
 		--network dev-network \
-		-e mysql_USER=root \
-		-e mysql_PASSWORD=L0gitech \
-		-e mysql_DB=testing \
-		-v ${HOME}/dev-mysql/data/:/var/lib/mysql/data \
+		-e MYSQL_ROOT_PASSWORD=mysqlpw \
+		-e MYSQL_DATABASE=testing \
 		-p 3306:3306 \
 		mysql
 
@@ -70,13 +67,13 @@ docker.redis:
 		-p 6379:6379 \
 		redis
 
-docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
+docker.stop: docker.stop.fiber docker.stop.mysql docker.stop.redis
 
 docker.stop.fiber:
 	docker stop cgapp-fiber
 
-docker.stop.postgres:
-	docker stop cgapp-postgres
+docker.stop.mysql:
+	docker stop cgapp-mysql
 
 docker.stop.redis:
 	docker stop cgapp-redis

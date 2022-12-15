@@ -131,7 +131,7 @@ func CreateInvoice(c *fiber.Ctx) error {
 	validate := utils.NewValidator()
 
 	// Set initialized default data for book:
-	invoice.CreatedAt = time.Now()
+
 	invoice.UserID = claims.UserID
 	invoice.Status = "unpaid" // 0 == draft, 1 == active
 
@@ -252,7 +252,6 @@ func UpdateInvoice(c *fiber.Ctx) error {
 	// Only the creator can delete his book.
 	if foundedInvoice.UserID == userID {
 		// Set initialized default data for book:
-		foundedInvoice.UpdatedAt = time.Now()
 
 		// Create a new validator for a Book model.
 		validate := utils.NewValidator()

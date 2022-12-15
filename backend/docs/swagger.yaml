@@ -3,6 +3,7 @@ definitions:
   models.Book:
     properties:
       author:
+        maxLength: 255
         type: string
       book_attrs:
         $ref: '#/definitions/models.BookAttrs'
@@ -11,18 +12,18 @@ definitions:
       created_at:
         type: string
       id:
-        type: string
+        type: integer
       title:
+        maxLength: 255
         type: string
       updated_at:
         type: string
       user_id:
-        type: string
+        type: integer
     required:
     - author
     - book_attrs
     - book_status
-    - id
     - title
     - user_id
     type: object
@@ -33,6 +34,8 @@ definitions:
       picture:
         type: string
       rating:
+        maximum: 10
+        minimum: 1
         type: integer
     type: object
   models.User:
@@ -40,20 +43,22 @@ definitions:
       created_at:
         type: string
       email:
+        maxLength: 255
         type: string
       id:
-        type: string
+        type: integer
       password_hash:
+        maxLength: 255
         type: string
       updated_at:
         type: string
       user_role:
+        maxLength: 25
         type: string
       user_status:
         type: integer
     required:
     - email
-    - id
     - password_hash
     - user_role
     - user_status

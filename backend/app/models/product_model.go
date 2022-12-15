@@ -4,17 +4,14 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 // Product struct to describe product object.
 type Product struct {
-	ID            uuid.UUID    `db:"id" json:"id" validate:"required,uuid"`
-	CreatedAt     time.Time    `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time    `db:"updated_at" json:"updated_at"`
-	UserID        uuid.UUID    `db:"user_id" json:"user_id" validate:"required,uuid"`
+	ID            int          `db:"id" json:"id" validate:"required"`
+	CreatedAt     string       `db:"created_at" json:"created_at"`
+	UpdatedAt     string       `db:"updated_at" json:"updated_at"`
+	UserID        int          `db:"user_id" json:"user_id" validate:"required"`
 	Title         string       `db:"title" json:"title" validate:"required,lte=255"`
 	Price         int          `db:"price" json:"price" validate:"required"`
 	Quantity      int          `db:"quantity" json:"quantity" validate:"required"`

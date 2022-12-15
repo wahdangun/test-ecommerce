@@ -134,7 +134,6 @@ func CreateCart(c *fiber.Ctx) error {
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
 
-	cart.CreatedAt = time.Now()
 	cart.UserID = claims.UserID
 
 	// Validate book fields.
@@ -242,7 +241,6 @@ func UpdateCart(c *fiber.Ctx) error {
 	// Only the creator can delete his book.
 	if foundedCart.UserID == userID {
 		// Set initialized default data for book:
-		foundedCart.UpdatedAt = time.Now()
 
 		// Create a new validator for a Book model.
 		validate := utils.NewValidator()

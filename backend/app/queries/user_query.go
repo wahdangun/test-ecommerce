@@ -2,7 +2,6 @@ package queries
 
 import (
 	"github.com/create-go-app/fiber-go-template/app/models"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -12,12 +11,12 @@ type UserQueries struct {
 }
 
 // GetUserByID query for getting one User by given ID.
-func (q *UserQueries) GetUserByID(id uuid.UUID) (models.User, error) {
+func (q *UserQueries) GetUserByID(id int) (models.User, error) {
 	// Define User variable.
 	user := models.User{}
 
 	// Define query string.
-	query := `SELECT * FROM users WHERE id = $1`
+	query := `SELECT * FROM users WHERE id = ?`
 
 	// Send query to database.
 	err := q.Get(&user, query, id)
@@ -36,7 +35,7 @@ func (q *UserQueries) GetUserByEmail(email string) (models.User, error) {
 	user := models.User{}
 
 	// Define query string.
-	query := `SELECT * FROM users WHERE email = $1`
+	query := `SELECT * FROM users WHERE email = ?`
 
 	// Send query to database.
 	err := q.Get(&user, query, email)
@@ -52,12 +51,12 @@ func (q *UserQueries) GetUserByEmail(email string) (models.User, error) {
 // CreateUser query for creating a new user by given email and password hash.
 func (q *UserQueries) CreateUser(u *models.User) error {
 	// Define query string.
-	query := `INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	query := `INSERT INTO users (email, password_hash, user_status, user_role) VALUES (?, ?, ?, ?)`
 
 	// Send query to database.
 	_, err := q.Exec(
 		query,
-		u.ID, u.CreatedAt, u.UpdatedAt, u.Email, u.PasswordHash, u.UserStatus, u.UserRole,
+		u.Email, u.PasswordHash, u.UserStatus, u.UserRole,
 	)
 	if err != nil {
 		// Return only error.

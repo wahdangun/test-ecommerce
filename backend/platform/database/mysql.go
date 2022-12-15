@@ -29,6 +29,7 @@ func MysqlConnection() (*sqlx.DB, error) {
 	// Define database connection for Mysql.
 	db, err := sqlx.Connect("mysql", mysqlConnURL)
 	if err != nil {
+		fmt.Println(mysqlConnURL)
 		return nil, fmt.Errorf("error, not connected to database, %w", err)
 	}
 

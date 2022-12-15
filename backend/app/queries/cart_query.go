@@ -2,7 +2,6 @@ package queries
 
 import (
 	"github.com/create-go-app/fiber-go-template/app/models"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -12,12 +11,12 @@ type CartQueries struct {
 }
 
 // GetBooksByAuthor method for getting all books by given author.
-func (q *CartQueries) GetCartByUser(id uuid.UUID) ([]models.Cart, error) {
+func (q *CartQueries) GetCartByUser(id int) ([]models.Cart, error) {
 	// Define books variable.
 	carts := []models.Cart{}
 
 	// Define query string.
-	query := `SELECT * FROM carts left join user on user.id = cart.user_id WHERE user.id = $1`
+	query := `SELECT * FROM carts left join user on user.id = cart.user_id WHERE user.id = ?`
 
 	// Send query to database.
 	err := q.Get(&carts, query, id)

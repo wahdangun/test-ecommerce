@@ -2,16 +2,16 @@ package utils
 
 import (
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 )
 
 // TokenMetadata struct to describe metadata in JWT.
 type TokenMetadata struct {
-	UserID      uuid.UUID
+	UserID      int
 	Credentials map[string]bool
 	Expires     int64
 }
@@ -27,7 +27,7 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		// User ID.
-		userID, err := uuid.Parse(claims["id"].(string))
+		userID, err := strconv.Atoi(claims["id"].(string))
 		if err != nil {
 			return nil, err
 		}
