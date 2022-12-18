@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/create-go-app/fiber-go-template/app/queries"
@@ -38,7 +39,7 @@ func OpenDBConnection() (*Queries, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("alamat", db)
 	return &Queries{
 		// Set queries from models:
 		UserQueries:    &queries.UserQueries{DB: db},    // from User model

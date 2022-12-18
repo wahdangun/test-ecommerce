@@ -19,7 +19,6 @@ func (q *ProductQueries) GetProducts() ([]models.Product, error) {
 
 	// Define query string.
 	query := `SELECT id, created_at, updated_at, title, quantity, price, product_status, product_attrs, user_id FROM products`
-	fmt.Println(query)
 	// Send query to database.
 	err := q.Select(&products, query)
 	if err != nil {
@@ -37,7 +36,7 @@ func (q *ProductQueries) GetProductByTitle(title string) ([]models.Product, erro
 	products := []models.Product{}
 
 	// Define query string.
-	query := `SELECT * FROM products WHERE title = $1`
+	query := `SELECT * FROM products WHERE title = ?`
 
 	// Send query to database.
 	err := q.Select(&products, query, title)

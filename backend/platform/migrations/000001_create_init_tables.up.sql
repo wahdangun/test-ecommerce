@@ -48,7 +48,7 @@ CREATE TABLE invoice_items (
     product_id INT NOT NULL,
     price INT NOT NULL,
     quantity INT DEFAULT 1 NOT NULL,
-    item_status INT NOT NULL,
+    item_status INT NOT NULL
 );
 
 CREATE TABLE products (
