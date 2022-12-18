@@ -8,15 +8,15 @@ import (
 
 // Product struct to describe product object.
 type Product struct {
-	ID            int          `db:"id" json:"id" validate:"required"`
+	Id            int          `db:"id" json:"id"`
 	CreatedAt     string       `db:"created_at" json:"created_at"`
 	UpdatedAt     string       `db:"updated_at" json:"updated_at"`
-	UserID        int          `db:"user_id" json:"user_id" validate:"required"`
 	Title         string       `db:"title" json:"title" validate:"required,lte=255"`
 	Price         int          `db:"price" json:"price" validate:"required"`
 	Quantity      int          `db:"quantity" json:"quantity" validate:"required"`
 	ProductStatus int          `db:"product_status" json:"product_status" validate:"required,len=1"`
 	ProductAttrs  ProductAttrs `db:"product_attrs" json:"product_attrs" validate:"required,dive"`
+	User_id       int          `db:"user_id" json:"user_id" validate:"required"`
 }
 
 // ProductAttrs struct to describe product attributes.

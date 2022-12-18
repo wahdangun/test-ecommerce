@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -31,12 +32,12 @@ func GetProducts(c *fiber.Ctx) error {
 	}
 
 	// Get all books.
-	books, err := db.GetProducts()
+	products, err := db.GetProducts()
 	if err != nil {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "books were not found",
+			"msg":   "products were not found" + err.Error(),
 			"count": 0,
 			"books": nil,
 		})
@@ -44,10 +45,10 @@ func GetProducts(c *fiber.Ctx) error {
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"count": len(books),
-		"books": books,
+		"error":   false,
+		"msg":     nil,
+		"count":   len(products),
+		"product": products,
 	})
 }
 
@@ -81,7 +82,7 @@ func GetProduct(c *fiber.Ctx) error {
 	}
 
 	// Get book by ID.
-	book, err := db.GetProductById(id)
+	product, err := db.GetProductById(id)
 	if err != nil {
 		// Return, if book not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -95,7 +96,7 @@ func GetProduct(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   nil,
-		"book":  book,
+		"book":  product,
 	})
 }
 
@@ -139,20 +140,20 @@ func CreateProduct(c *fiber.Ctx) error {
 	}
 
 	// Set credential `book:create` from JWT data of current book.
-	credential := claims.Credentials[repository.BookCreateCredential]
+	//	credential := claims.Credentials[repository.BookCreateCredential]
 
 	// Only user with `book:create` credential can create a new book.
-	if !credential {
-		// Return status 403 and permission denied error message.
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": true,
-			"msg":   "permission denied, check credentials of your token",
-		})
-	}
+	// if !credential {
+	// 	// Return status 403 and permission denied error message.
+	// 	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+	// 		"error": true,
+	// 		"msg":   "permission denied, check credentials of your token",
+	// 	})
+	// }
 
 	// Create new Book struct
 	product := &models.Product{}
-
+	fmt.Println("product", product)
 	// Check, if received JSON data is valid.
 	if err := c.BodyParser(product); err != nil {
 		// Return status 400 and error message.
@@ -175,7 +176,7 @@ func CreateProduct(c *fiber.Ctx) error {
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
 
-	product.UserID = claims.UserID
+	product.User_id = claims.UserID
 	product.ProductStatus = 1 // 0 == draft, 1 == active
 
 	// Validate book fields.
@@ -259,7 +260,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 
 	// Create new Book struct
 	product := &models.Product{}
-
+	product.User_id = claims.UserID
 	// Check, if received JSON data is valid.
 	if err := c.BodyParser(product); err != nil {
 		// Return status 400 and error message.
@@ -280,12 +281,12 @@ func UpdateProduct(c *fiber.Ctx) error {
 	}
 
 	// Checking, if book with given ID is exists.
-	foundedProduct, err := db.GetProductById(product.ID)
+	foundedProduct, err := db.GetProductById(product.Id)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "book with this ID not found",
+			"msg":   "product with this ID not found",
 		})
 	}
 
@@ -293,7 +294,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 	userID := claims.UserID
 
 	// Only the creator can delete his book.
-	if foundedProduct.UserID == userID {
+	if foundedProduct.User_id == userID {
 		// Set initialized default data for book:
 
 		// Create a new validator for a Book model.
@@ -309,7 +310,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 		}
 
 		// Update book by given ID.
-		if err := db.UpdateProduct(foundedProduct.ID, product); err != nil {
+		if err := db.UpdateProduct(foundedProduct.Id, product); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,
@@ -345,6 +346,14 @@ func DeleteProduct(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
 
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		// Return status 400 and error message.
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -367,42 +376,6 @@ func DeleteProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set credential `book:delete` from JWT data of current book.
-	credential := claims.Credentials[repository.BookDeleteCredential]
-
-	// Only book creator with `book:delete` credential can delete his book.
-	if !credential {
-		// Return status 403 and permission denied error message.
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": true,
-			"msg":   "permission denied, check credentials of your token",
-		})
-	}
-
-	// Create new Book struct
-	product := &models.Product{}
-
-	// Check, if received JSON data is valid.
-	if err := c.BodyParser(product); err != nil {
-		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	// Create a new validator for a Book model.
-	validate := utils.NewValidator()
-
-	// Validate book fields.
-	if err := validate.StructPartial(product, "id"); err != nil {
-		// Return, if some fields are not valid.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
-	}
-
 	// Create database connection.
 	db, err := database.OpenDBConnection()
 	if err != nil {
@@ -414,7 +387,7 @@ func DeleteProduct(c *fiber.Ctx) error {
 	}
 
 	// Checking, if book with given ID is exists.
-	foundedProduct, err := db.GetProductById(product.ID)
+	foundedProduct, err := db.GetProductById(id)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -427,9 +400,9 @@ func DeleteProduct(c *fiber.Ctx) error {
 	userID := claims.UserID
 
 	// Only the creator can delete his book.
-	if foundedProduct.UserID == userID {
+	if foundedProduct.User_id == userID {
 		// Delete book by given ID.
-		if err := db.DeleteProduct(foundedProduct.ID); err != nil {
+		if err := db.DeleteProduct(foundedProduct.Id); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,

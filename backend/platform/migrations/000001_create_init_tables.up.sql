@@ -27,7 +27,6 @@ CREATE TABLE carts (
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     product_id INT NOT NULL ,
     user_id INT NOT NULL,
-    cart_status INT NOT NULL,
     quantity INT NOT NULL
 );
 
@@ -37,8 +36,8 @@ CREATE TABLE invoices (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     user_id INT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    invoice_status INT NOT NULL,
-    invoice_attrs JSON NOT NULL
+    invoice_status VARCHAR (100) NOT NULL,
+    total INT NOT NULL
 );
 
 CREATE TABLE invoice_items (
@@ -46,11 +45,10 @@ CREATE TABLE invoice_items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
     updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     invoice_id INT NOT NULL REFERENCES invoices (id) ON DELETE CASCADE,
-    produk_id INT NOT NULL,
+    product_id INT NOT NULL,
     price INT NOT NULL,
-    qty INT NOT NULL,
+    quantity INT DEFAULT 1 NOT NULL,
     item_status INT NOT NULL,
-    item_attrs JSON NOT NULL
 );
 
 CREATE TABLE products (
@@ -60,8 +58,18 @@ CREATE TABLE products (
     title VARCHAR (255) NOT NULL,
     quantity INT NOT NULL,
     price INT NOT NULL,
+    user_id INT NOT NULL,
     product_status INT NOT NULL,
     product_attrs JSON NOT NULL
+);
+
+CREATE TABLE LOGGING (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    user_id INT NOT NULL,
+    slug VARCHAR (255) NOT NULL,
+    action_status INT NOT NULL,
+    action_attrs JSON 
 );
 
 -- Add indexes

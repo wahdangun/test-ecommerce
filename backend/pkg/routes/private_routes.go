@@ -22,12 +22,16 @@ func PrivateRoutes(a *fiber.App) {
 	// Routes for DELETE method:
 	route.Delete("/book", middleware.JWTProtected(), controllers.DeleteBook) // delete one book by ID
 
+	route.Post("/product", middleware.JWTProtected(), controllers.CreateProduct)       // create a new product
+	route.Put("/product", middleware.JWTProtected(), controllers.UpdateProduct)        // update product by ID
+	route.Delete("/product/:id", middleware.JWTProtected(), controllers.DeleteProduct) // delete product by ID
+
 	route.Get("/carts", controllers.GetCart)          // get list of all carts
 	route.Put("/cart", controllers.UpdateCart)        // update cart by ID
 	route.Delete("/cart/:id", controllers.DeleteCart) // delete cart by ID
 	route.Post("/cart", controllers.CreateCart)       // create a new cart
 
-	route.Post("/invoice", controllers.CreateInvoice) // create a new invoice
-	route.Get("/invoices", controllers.GetInvoice)    // get list of all invoices
-	route.Put("/invoice", controllers.UpdateInvoice)  // update invoice by ID
+	route.Post("/invoice", controllers.CreateInvoice)       // create a new invoice
+	route.Get("/invoices", controllers.GetInvoicesByUserId) // get list of all invoices
+	route.Put("/invoice", controllers.UpdateInvoice)        // update invoice by ID
 }

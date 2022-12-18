@@ -70,10 +70,10 @@ func (q *BookQueries) GetBook(id int) (models.Book, error) {
 // CreateBook method for creating book by given Book object.
 func (q *BookQueries) CreateBook(b *models.Book) error {
 	// Define query string.
-	query := `INSERT INTO books VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `INSERT INTO books VALUES ($1, $2, $3, $4, $5)`
 
 	// Send query to database.
-	_, err := q.Exec(query, b.ID, b.CreatedAt, b.UpdatedAt, b.UserID, b.Title, b.Author, b.BookStatus, b.BookAttrs)
+	_, err := q.Exec(query, b.UserID, b.Title, b.Author, b.BookStatus, b.BookAttrs)
 	if err != nil {
 		// Return only error.
 		return err

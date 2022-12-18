@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -26,7 +27,7 @@ import (
 func RenewTokens(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
-
+	fmt.Println("masuk")
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -36,7 +37,7 @@ func RenewTokens(c *fiber.Ctx) error {
 			"msg":   err.Error(),
 		})
 	}
-
+	fmt.Println("masuk2")
 	// Set expiration time from JWT data of current user.
 	expiresAccessToken := claims.Expires
 
@@ -55,12 +56,13 @@ func RenewTokens(c *fiber.Ctx) error {
 	// Checking received data from JSON body.
 	if err := c.BodyParser(renew); err != nil {
 		// Return, if JSON data is not correct.
+		fmt.Println(renew)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 		})
 	}
-
+	fmt.Println("masuk3")
 	// Set expiration time from Refresh token of current user.
 	expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
 	if err != nil {
@@ -98,6 +100,7 @@ func RenewTokens(c *fiber.Ctx) error {
 
 		// Get role credentials from founded user.
 		credentials, err := utils.GetCredentialsByRole(foundedUser.UserRole)
+		fmt.Println(credentials)
 		if err != nil {
 			// Return status 400 and error message.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

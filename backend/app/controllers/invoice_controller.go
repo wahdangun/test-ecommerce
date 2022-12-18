@@ -20,7 +20,7 @@ import (
 // @Param id path string true "Book ID"
 // @Success 200 {object} models.Book
 // @Router /v1/book/{id} [get]
-func GetInvoice(c *fiber.Ctx) error {
+func GetInvoiceById(c *fiber.Ctx) error {
 	// Catch book ID from URL.
 	id := c.Params("id")
 	if id == "" {
@@ -49,6 +49,69 @@ func GetInvoice(c *fiber.Ctx) error {
 	}
 	// Get book by ID.
 	book, err := db.GetInvoiceById(id_int)
+	if err != nil {
+		// Return, if book not found.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Order is not found",
+			"book":  nil,
+		})
+	}
+
+	// Return status 200 OK.
+	return c.JSON(fiber.Map{
+		"error": false,
+		"msg":   nil,
+		"book":  book,
+	})
+}
+
+// get invoices by id user
+func GetInvoicesByUserId(c *fiber.Ctx) error {
+	// Get now time.
+	now := time.Now().Unix()
+
+	// Get claims from JWT.
+	claims, err := utils.ExtractTokenMetadata(c)
+	if err != nil {
+		// Return status 500 and JWT parse error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
+	// Set expiration time from JWT data of current book.
+	expires := claims.Expires
+
+	// Checking, if now time greather than expiration from JWT.
+	if now > expires {
+		// Return status 401 and unauthorized error message.
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": true,
+			"msg":   "unauthorized, check expiration time of your token",
+		})
+	}
+
+	id := claims.UserID
+	// Create database connection.
+	db, err := database.OpenDBConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "Order is not found" + err.Error(),
+			"book":  nil,
+		})
+	}
+	// Get book by ID.
+	book, err := db.GetInvoiceByUser(id)
 	if err != nil {
 		// Return, if book not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -106,10 +169,11 @@ func CreateInvoice(c *fiber.Ctx) error {
 	}
 
 	// Create new Book struct
+	payload := []models.PayloadInvoice{}
 	invoice := &models.Invoice{}
 
 	// Check, if received JSON data is valid.
-	if err := c.BodyParser(invoice); err != nil {
+	if err := c.BodyParser(&payload); err != nil {
 		// Return status 400 and error message.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": true,
@@ -126,6 +190,19 @@ func CreateInvoice(c *fiber.Ctx) error {
 			"msg":   err.Error(),
 		})
 	}
+	for _, v := range payload {
+		foundedCart, err := db.GetCartById(v.Cart_id)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   "Cart is not found",
+				"book":  nil,
+			})
+		}
+		invoice.InvoiceItems = append(invoice.InvoiceItems, models.InvoiceItem{ProductID: foundedCart.Product_id, Price: foundedCart.Price, Quantity: foundedCart.Quantity, Product: foundedCart.Title})
+		invoice.Total += foundedCart.Price * foundedCart.Quantity
+
+	}
 
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
@@ -133,7 +210,7 @@ func CreateInvoice(c *fiber.Ctx) error {
 	// Set initialized default data for book:
 
 	invoice.UserID = claims.UserID
-	invoice.Status = "unpaid" // 0 == draft, 1 == active
+	invoice.Status = "unpaid" // Default status is unpaid.
 
 	// Validate book fields.
 	if err := validate.Struct(invoice); err != nil {
@@ -151,6 +228,9 @@ func CreateInvoice(c *fiber.Ctx) error {
 			"error": true,
 			"msg":   err.Error(),
 		})
+	}
+	for _, v := range payload {
+		db.DeleteCartById(v.Cart_id)
 	}
 
 	// Return status 200 OK.
@@ -283,7 +363,7 @@ func UpdateInvoice(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": true,
-			"msg":   "permission denied, only the creator can delete his book",
+			"msg":   "permission denied, invalid user",
 		})
 	}
 }

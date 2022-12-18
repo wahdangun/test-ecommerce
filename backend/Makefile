@@ -3,7 +3,7 @@
 APP_NAME = apiserver
 BUILD_DIR = I:/whatsappscrapping-go/test-ecommerce/backend/build
 MIGRATIONS_FOLDER =  I:/whatsappscrapping-go/test-ecommerce/backend/platform/migrations
-DATABASE_URL = mysql://root:mysqlpw@tcp(localhost:3306)/testing
+DATABASE_URL = mysql://root:mysqlpw@tcp(192.168.90.10:3306)/testing
 
 clean:
 	rm -rf ./build

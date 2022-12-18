@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/create-go-app/fiber-go-template/app/models"
@@ -50,12 +51,13 @@ func GetCart(c *fiber.Ctx) error {
 	}
 
 	// Get all books.
-	books, err := db.GetCartByUser(claims.UserID)
+	carts, err := db.GetCartByUser(claims.UserID)
+	fmt.Println(carts)
 	if err != nil {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "books were not found",
+			"msg":   err.Error(),
 			"count": 0,
 			"books": nil,
 		})
@@ -65,8 +67,8 @@ func GetCart(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   nil,
-		"count": len(books),
-		"books": books,
+		"count": len(carts),
+		"books": carts,
 	})
 }
 
@@ -111,6 +113,7 @@ func CreateCart(c *fiber.Ctx) error {
 
 	// Create new Book struct
 	cart := &models.Cart{}
+	cart.UserID = claims.UserID
 
 	// Check, if received JSON data is valid.
 	if err := c.BodyParser(cart); err != nil {
@@ -130,6 +133,39 @@ func CreateCart(c *fiber.Ctx) error {
 			"msg":   err.Error(),
 		})
 	}
+	foundedProduct, err := db.GetProductById(cart.Product_id)
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "product not found",
+		})
+	}
+	if foundedProduct.Id == 0 {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "product not found" + err.Error(),
+		})
+	}
+	if foundedProduct.Quantity < cart.Quantity {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": true,
+			"msg":   "product quantity is not enough",
+		})
+	}
+
+	foundedCart, err := db.GetCartByUserAndProduct(claims.UserID, cart.Product_id)
+	if err != nil {
+		// Return status 500 and database connection error.
+		if err.Error() != "sql: no rows in result set" {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
+	}
 
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
@@ -144,16 +180,32 @@ func CreateCart(c *fiber.Ctx) error {
 			"msg":   utils.ValidatorErrors(err),
 		})
 	}
-
-	// Create book by given model.
-	if err := db.CreateCart(cart); err != nil {
-		// Return status 500 and error message.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+	if foundedCart.ID != 0 {
+		foundedCart.Quantity += cart.Quantity
+		if foundedCart.Quantity > foundedProduct.Quantity {
+			// Return status 500 and database connection error.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   "product quantity is not enough",
+			})
+		}
+		if err := db.UpdateCart(foundedCart.ID, foundedCart.Quantity); err != nil {
+			// Return status 500 and error message.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
+	} else {
+		// Create book by given model.
+		if err := db.CreateCart(cart); err != nil {
+			// Return status 500 and error message.
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": true,
+				"msg":   err.Error(),
+			})
+		}
 	}
-
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
 		"error": false,
@@ -251,6 +303,28 @@ func UpdateCart(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": true,
 				"msg":   utils.ValidatorErrors(err),
+			})
+		}
+		foundedProduct, err := db.GetProductById(cart.Product_id)
+		if err != nil {
+			// Return status 500 and database connection error.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   "product not found",
+			})
+		}
+		if foundedProduct.Id == 0 {
+			// Return status 500 and database connection error.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   "product not found" + err.Error(),
+			})
+		}
+		if foundedProduct.Quantity < cart.Quantity+foundedCart.Quantity {
+			// Return status 500 and database connection error.
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": true,
+				"msg":   "product quantity is not enough",
 			})
 		}
 
@@ -363,7 +437,7 @@ func DeleteCart(c *fiber.Ctx) error {
 	// Only the creator can delete his book.
 	if foundedCart.UserID == userID {
 		// Delete book by given ID.
-		if err := db.DeleteCart(foundedCart.ID); err != nil {
+		if err := db.DeleteCartById(foundedCart.ID); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,

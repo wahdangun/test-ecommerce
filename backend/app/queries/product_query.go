@@ -1,6 +1,8 @@
 package queries
 
 import (
+	"fmt"
+
 	"github.com/create-go-app/fiber-go-template/app/models"
 	"github.com/jmoiron/sqlx"
 )
@@ -16,10 +18,10 @@ func (q *ProductQueries) GetProducts() ([]models.Product, error) {
 	products := []models.Product{}
 
 	// Define query string.
-	query := `SELECT * FROM products`
-
+	query := `SELECT id, created_at, updated_at, title, quantity, price, product_status, product_attrs, user_id FROM products`
+	fmt.Println(query)
 	// Send query to database.
-	err := q.Get(&products, query)
+	err := q.Select(&products, query)
 	if err != nil {
 		// Return empty object and error.
 		return products, err
@@ -38,7 +40,7 @@ func (q *ProductQueries) GetProductByTitle(title string) ([]models.Product, erro
 	query := `SELECT * FROM products WHERE title = $1`
 
 	// Send query to database.
-	err := q.Get(&products, query, title)
+	err := q.Select(&products, query, title)
 	if err != nil {
 		// Return empty object and error.
 		return products, err
@@ -51,29 +53,31 @@ func (q *ProductQueries) GetProductByTitle(title string) ([]models.Product, erro
 // GetBook method for getting one book by given ID.
 func (q *ProductQueries) GetProductById(id int) (models.Product, error) {
 	// Define book variable.
-	products := models.Product{}
+	product := models.Product{}
 
 	// Define query string.
-	query := `SELECT * FROM products WHERE id = $1`
+	query := `SELECT * FROM products WHERE id = ?`
 
 	// Send query to database.
-	err := q.Get(&products, query, id)
+	err := q.Get(&product, query, id)
 	if err != nil {
 		// Return empty object and error.
-		return products, err
+		fmt.Println(err.Error(), query)
+		return product, err
 	}
 
 	// Return query result.
-	return products, nil
+	return product, nil
 }
 
 // CreateBook method for creating book by given Book object.
 func (q *ProductQueries) CreateProduct(b *models.Product) error {
 	// Define query string.
-	query := `INSERT INTO products VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	fmt.Println(b)
+	query := `INSERT INTO products (user_id, title, price, product_status, quantity, product_attrs) VALUES (?,?,?,?,?,?)`
 
 	// Send query to database.
-	_, err := q.Exec(query, b.ID, b.CreatedAt, b.UpdatedAt, b.UserID, b.Title, b.Price, b.ProductStatus, b.ProductAttrs, b.Quantity)
+	_, err := q.Exec(query, b.User_id, b.Title, b.Price, b.ProductStatus, b.Quantity, b.ProductAttrs)
 	if err != nil {
 		// Return only error.
 		return err
@@ -86,12 +90,13 @@ func (q *ProductQueries) CreateProduct(b *models.Product) error {
 // UpdateBook method for updating book by given Book object.
 func (q *ProductQueries) UpdateProduct(id int, b *models.Product) error {
 	// Define query string.
-	query := `UPDATE books SET updated_at = $2, title = $3, price = $4, quantity = $5, product_status = $6, product_attrs = $7 WHERE id = $1`
+	query := `UPDATE products SET  title = ?, price = ?, quantity = ?, product_status = ?, product_attrs = ? WHERE id = ?`
 
 	// Send query to database.
-	_, err := q.Exec(query, id, b.UpdatedAt, b.Title, b.Price, b.Quantity, b.ProductStatus, b.ProductAttrs)
+	_, err := q.Exec(query, b.Title, b.Price, b.Quantity, b.ProductStatus, b.ProductAttrs, id)
 	if err != nil {
 		// Return only error.
+		fmt.Println(err.Error(), query)
 		return err
 	}
 
@@ -100,9 +105,9 @@ func (q *ProductQueries) UpdateProduct(id int, b *models.Product) error {
 }
 
 // DeleteBook method for delete book by given ID.
-func (q *BookQueries) DeleteProduct(id int) error {
+func (q *ProductQueries) DeleteProduct(id int) error {
 	// Define query string.
-	query := `DELETE FROM products WHERE id = $1`
+	query := `DELETE FROM products WHERE id = ?`
 
 	// Send query to database.
 	_, err := q.Exec(query, id)
