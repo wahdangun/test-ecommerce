@@ -139,7 +139,7 @@ func CreateBook(c *fiber.Ctx) error {
 	}
 
 	// Set credential `book:create` from JWT data of current book.
-	credential := claims.Credentials[repository.Omnipotent]
+	credential := claims.Credentials[repository.BookCreateCredential]
 
 	// Only user with `book:create` credential can create a new book.
 	if !credential {

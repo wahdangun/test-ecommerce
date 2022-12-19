@@ -12,14 +12,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetBooks func gets all exists books.
-// @Description Get all exists books.
-// @Summary get all exists books
-// @Tags Books
+// Getproducts func gets all exists products.
+// @Description Get all exists products.
+// @Summary get all exists products
+// @Tags products
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.Book
-// @Router /v1/books [get]
+// @Success 200 {array} models.Product
+// @Router /v1/products [get]
 func GetProducts(c *fiber.Ctx) error {
 	// Create database connection.
 	db, err := database.OpenDBConnection()
@@ -31,15 +31,15 @@ func GetProducts(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get all books.
+	// Get all products.
 	products, err := db.GetProducts()
 	if err != nil {
-		// Return, if books not found.
+		// Return, if products not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "products were not found" + err.Error(),
-			"count": 0,
-			"books": nil,
+			"error":    true,
+			"msg":      "products were not found" + err.Error(),
+			"count":    0,
+			"products": nil,
 		})
 	}
 
@@ -52,17 +52,17 @@ func GetProducts(c *fiber.Ctx) error {
 	})
 }
 
-// GetBook func gets book by given ID or 404 error.
-// @Description Get book by given ID.
-// @Summary get book by given ID
-// @Tags Book
+// Getproduct func gets product by given ID or 404 error.
+// @Description Get product by given ID.
+// @Summary get product by given ID
+// @Tags product
 // @Accept json
 // @Produce json
-// @Param id path string true "Book ID"
-// @Success 200 {object} models.Book
-// @Router /v1/book/{id} [get]
+// @Param id path string true "product ID"
+// @Success 200 {object} models.Product
+// @Router /v1/product/{id} [get]
 func GetProduct(c *fiber.Ctx) error {
-	// Catch book ID from URL.
+	// Catch product ID from URL.
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -81,38 +81,38 @@ func GetProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get book by ID.
+	// Get product by ID.
 	product, err := db.GetProductById(id)
 	if err != nil {
-		// Return, if book not found.
+		// Return, if product not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "book with the given ID is not found",
-			"book":  nil,
+			"error":   true,
+			"msg":     "product with the given ID is not found",
+			"product": nil,
 		})
 	}
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"book":  product,
+		"error":   false,
+		"msg":     nil,
+		"product": product,
 	})
 }
 
-// CreateBook func for creates a new book.
-// @Description Create a new book.
-// @Summary create a new book
-// @Tags Book
+// Createproduct func for creates a new product.
+// @Description Create a new product.
+// @Summary create a new product
+// @Tags product
 // @Accept json
 // @Produce json
 // @Param title body string true "Title"
-// @Param author body string true "Author"
-// @Param user_id body string true "User ID"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
-// @Success 200 {object} models.Book
+// @Param price body int true "Price"
+// @Param quantity body int true "Quantity"
+// @Param product_attrs body models.ProductAttrs true "product attributes"
+// @Success 200 {object} models.Product
 // @Security ApiKeyAuth
-// @Router /v1/book [post]
+// @Router /v1/product [post]
 func CreateProduct(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -127,7 +127,7 @@ func CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current product.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -139,19 +139,19 @@ func CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set credential `book:create` from JWT data of current book.
-	//	credential := claims.Credentials[repository.BookCreateCredential]
+	//Set credential `product:create` from JWT data of current product.
+	credential := claims.Credentials[repository.ProductCreateCredential]
 
-	// Only user with `book:create` credential can create a new book.
-	// if !credential {
-	// 	// Return status 403 and permission denied error message.
-	// 	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-	// 		"error": true,
-	// 		"msg":   "permission denied, check credentials of your token",
-	// 	})
-	// }
+	//	Only user with `product:create` credential can create a new product.
+	if !credential {
+		// Return status 403 and permission denied error message.
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": true,
+			"msg":   "permission denied, check credentials of your token",
+		})
+	}
 
-	// Create new Book struct
+	// Create new product struct
 	product := &models.Product{}
 	fmt.Println("product", product)
 	// Check, if received JSON data is valid.
@@ -173,13 +173,13 @@ func CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create a new validator for a Book model.
+	// Create a new validator for a product model.
 	validate := utils.NewValidator()
 
 	product.User_id = claims.UserID
 	product.ProductStatus = 1 // 0 == draft, 1 == active
 
-	// Validate book fields.
+	// Validate product fields.
 	if err := validate.Struct(product); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -188,7 +188,7 @@ func CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create book by given model.
+	// Create product by given model.
 	if err := db.CreateProduct(product); err != nil {
 		// Return status 500 and error message.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -199,27 +199,26 @@ func CreateProduct(c *fiber.Ctx) error {
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"book":  product,
+		"error":   false,
+		"msg":     nil,
+		"product": product,
 	})
 }
 
-// UpdateBook func for updates book by given ID.
-// @Description Update book.
-// @Summary update book
-// @Tags Book
+// Updateproduct func for updates product by given ID.
+// @Description Update product.
+// @Summary update product
+// @Tags product
 // @Accept json
 // @Produce json
-// @Param id body string true "Book ID"
 // @Param title body string true "Title"
-// @Param author body string true "Author"
-// @Param user_id body string true "User ID"
-// @Param book_status body integer true "Book status"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
+// @Param price body int true "Price"
+// @Param quantity body int true "Quantity"
+// @Param product_status body integer true "product status"
+// @Param product_attrs body models.ProductAttrs true "product attributes"
 // @Success 202 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/book [put]
+// @Router /v1/product [put]
 func UpdateProduct(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -234,7 +233,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current product.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -246,10 +245,10 @@ func UpdateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set credential `book:update` from JWT data of current book.
-	credential := claims.Credentials[repository.BookUpdateCredential]
+	// Set credential `product:update` from JWT data of current product.
+	credential := claims.Credentials[repository.ProductUpdateCredential]
 
-	// Only book creator with `book:update` credential can update his book.
+	// Only product creator with `product:update` credential can update his product.
 	if !credential {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -258,7 +257,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new product struct
 	product := &models.Product{}
 	product.User_id = claims.UserID
 	// Check, if received JSON data is valid.
@@ -280,10 +279,10 @@ func UpdateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if book with given ID is exists.
+	// Checking, if product with given ID is exists.
 	foundedProduct, err := db.GetProductById(product.Id)
 	if err != nil {
-		// Return status 404 and book not found error.
+		// Return status 404 and product not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
 			"msg":   "product with this ID not found",
@@ -293,14 +292,14 @@ func UpdateProduct(c *fiber.Ctx) error {
 	// Set user ID from JWT data of current user.
 	userID := claims.UserID
 
-	// Only the creator can delete his book.
+	// Only the creator can delete his product.
 	if foundedProduct.User_id == userID {
-		// Set initialized default data for book:
+		// Set initialized default data for product:
 
-		// Create a new validator for a Book model.
+		// Create a new validator for a product model.
 		validate := utils.NewValidator()
 
-		// Validate book fields.
+		// Validate product fields.
 		if err := validate.Struct(product); err != nil {
 			// Return, if some fields are not valid.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -309,7 +308,7 @@ func UpdateProduct(c *fiber.Ctx) error {
 			})
 		}
 
-		// Update book by given ID.
+		// Update product by given ID.
 		if err := db.UpdateProduct(foundedProduct.Id, product); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -327,21 +326,21 @@ func UpdateProduct(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": true,
-			"msg":   "permission denied, only the creator can delete his book",
+			"msg":   "permission denied, only the creator can delete his product",
 		})
 	}
 }
 
-// DeleteBook func for deletes book by given ID.
-// @Description Delete book by given ID.
-// @Summary delete book by given ID
-// @Tags Book
+// Deleteproduct func for deletes product by given ID.
+// @Description Delete product by given ID.
+// @Summary delete product by given ID
+// @Tags product
 // @Accept json
 // @Produce json
-// @Param id body string true "Book ID"
+// @Param id body string true "product ID"
 // @Success 204 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/book [delete]
+// @Router /v1/product [delete]
 func DeleteProduct(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -364,7 +363,7 @@ func DeleteProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current product.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -375,7 +374,17 @@ func DeleteProduct(c *fiber.Ctx) error {
 			"msg":   "unauthorized, check expiration time of your token",
 		})
 	}
+	//Set credential `product:delete` from JWT data of current product.
+	credential := claims.Credentials[repository.ProductDeleteCredential]
 
+	//	Only user with `product:delete` credential can delete a  product.
+	if !credential {
+		// Return status 403 and permission denied error message.
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": true,
+			"msg":   "permission denied, check credentials of your token",
+		})
+	}
 	// Create database connection.
 	db, err := database.OpenDBConnection()
 	if err != nil {
@@ -386,22 +395,22 @@ func DeleteProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if book with given ID is exists.
+	// Checking, if product with given ID is exists.
 	foundedProduct, err := db.GetProductById(id)
 	if err != nil {
-		// Return status 404 and book not found error.
+		// Return status 404 and product not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "book with this ID not found",
+			"msg":   "product with this ID not found",
 		})
 	}
 
 	// Set user ID from JWT data of current user.
 	userID := claims.UserID
 
-	// Only the creator can delete his book.
+	// Only the creator can delete his product.
 	if foundedProduct.User_id == userID {
-		// Delete book by given ID.
+		// Delete product by given ID.
 		if err := db.DeleteProduct(foundedProduct.Id); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -416,7 +425,7 @@ func DeleteProduct(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": true,
-			"msg":   "permission denied, only the creator can delete his book",
+			"msg":   "permission denied, only the creator can delete his product",
 		})
 	}
 }

@@ -10,14 +10,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetBooks func gets all exists books.
-// @Description Get all exists books.
-// @Summary get all exists books
-// @Tags Books
+// Getcart func gets all exists cart.
+// @Description Get all exists cart.
+// @Summary get all exists cart
+// @Tags cart
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.Book
-// @Router /v1/books [get]
+// @Success 200 {array} models.Cart
+// @Router /v1/cart [get]
 func GetCart(c *fiber.Ctx) error {
 	// Create database connection.
 	db, err := database.OpenDBConnection()
@@ -38,7 +38,7 @@ func GetCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current cart.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -50,16 +50,16 @@ func GetCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get all books.
+	// Get all cart.
 	carts, err := db.GetCartByUser(claims.UserID)
 	fmt.Println(carts)
 	if err != nil {
-		// Return, if books not found.
+		// Return, if cart not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
 			"msg":   err.Error(),
 			"count": 0,
-			"books": nil,
+			"cart":  nil,
 		})
 	}
 
@@ -68,23 +68,21 @@ func GetCart(c *fiber.Ctx) error {
 		"error": false,
 		"msg":   nil,
 		"count": len(carts),
-		"books": carts,
+		"cart":  carts,
 	})
 }
 
-// CreateBook func for creates a new book.
-// @Description Create a new book.
-// @Summary create a new book
-// @Tags Book
+// Createcart func for creates a new cart.
+// @Description Create a new cart.
+// @Summary create a new cart
+// @Tags cart
 // @Accept json
 // @Produce json
 // @Param title body string true "Title"
-// @Param author body string true "Author"
 // @Param user_id body string true "User ID"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
-// @Success 200 {object} models.Book
+// @Success 200 {object} models.Cart
 // @Security ApiKeyAuth
-// @Router /v1/book [post]
+// @Router /v1/cart [post]
 func CreateCart(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -99,7 +97,7 @@ func CreateCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current cart.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -111,7 +109,7 @@ func CreateCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new cart struct
 	cart := &models.Cart{}
 	cart.UserID = claims.UserID
 
@@ -167,12 +165,12 @@ func CreateCart(c *fiber.Ctx) error {
 		}
 	}
 
-	// Create a new validator for a Book model.
+	// Create a new validator for a cart model.
 	validate := utils.NewValidator()
 
 	cart.UserID = claims.UserID
 
-	// Validate book fields.
+	// Validate cart fields.
 	if err := validate.Struct(cart); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -197,7 +195,7 @@ func CreateCart(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		// Create book by given model.
+		// Create cart by given model.
 		if err := db.CreateCart(cart); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -210,25 +208,23 @@ func CreateCart(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"error": false,
 		"msg":   nil,
-		"book":  cart,
+		"cart":  cart,
 	})
 }
 
-// UpdateBook func for updates book by given ID.
-// @Description Update book.
-// @Summary update book
-// @Tags Book
+// Updatecart func for updates cart by given ID.
+// @Description Update cart.
+// @Summary update cart
+// @Tags cart
 // @Accept json
 // @Produce json
-// @Param id body string true "Book ID"
+// @Param id body string true "cart ID"
 // @Param title body string true "Title"
-// @Param author body string true "Author"
 // @Param user_id body string true "User ID"
-// @Param book_status body integer true "Book status"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
+// @Param cart_status body integer true "cart status"
 // @Success 202 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/book [put]
+// @Router /v1/cart [put]
 func UpdateCart(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -243,7 +239,7 @@ func UpdateCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current cart.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -255,7 +251,7 @@ func UpdateCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new cart struct
 	cart := &models.Cart{}
 
 	// Check, if received JSON data is valid.
@@ -277,27 +273,27 @@ func UpdateCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if book with given ID is exists.
+	// Checking, if cart with given ID is exists.
 	foundedCart, err := db.GetCartById(cart.ID)
 	if err != nil {
-		// Return status 404 and book not found error.
+		// Return status 404 and cart not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "book with this ID not found",
+			"msg":   "cart with this ID not found",
 		})
 	}
 
 	// Set user ID from JWT data of current user.
 	userID := claims.UserID
 
-	// Only the creator can delete his book.
+	// Only the creator can delete his cart.
 	if foundedCart.UserID == userID {
-		// Set initialized default data for book:
+		// Set initialized default data for cart:
 
-		// Create a new validator for a Book model.
+		// Create a new validator for a cart model.
 		validate := utils.NewValidator()
 
-		// Validate book fields.
+		// Validate cart fields.
 		if err := validate.Struct(cart); err != nil {
 			// Return, if some fields are not valid.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -328,7 +324,7 @@ func UpdateCart(c *fiber.Ctx) error {
 			})
 		}
 
-		// Update book by given ID.
+		// Update cart by given ID.
 		if err := db.UpdateCart(foundedCart.ID, cart.Quantity); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -346,21 +342,21 @@ func UpdateCart(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": true,
-			"msg":   "permission denied, only the creator can delete his book",
+			"msg":   "permission denied, only the creator can delete his cart",
 		})
 	}
 }
 
-// DeleteBook func for deletes book by given ID.
-// @Description Delete book by given ID.
-// @Summary delete book by given ID
-// @Tags Book
+// Deletecart func for deletes cart by given ID.
+// @Description Delete cart by given ID.
+// @Summary delete cart by given ID
+// @Tags cart
 // @Accept json
 // @Produce json
-// @Param id body string true "Book ID"
+// @Param id body string true "cart ID"
 // @Success 204 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/book [delete]
+// @Router /v1/cart [delete]
 func DeleteCart(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -375,7 +371,7 @@ func DeleteCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current cart.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -387,7 +383,7 @@ func DeleteCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new cart struct
 	cart := &models.Cart{}
 
 	// Check, if received JSON data is valid.
@@ -399,10 +395,10 @@ func DeleteCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create a new validator for a Book model.
+	// Create a new validator for a cart model.
 	validate := utils.NewValidator()
 
-	// Validate book fields.
+	// Validate cart fields.
 	if err := validate.StructPartial(cart, "id"); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -421,22 +417,22 @@ func DeleteCart(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if book with given ID is exists.
+	// Checking, if cart with given ID is exists.
 	foundedCart, err := db.GetCartById(cart.ID)
 	if err != nil {
-		// Return status 404 and book not found error.
+		// Return status 404 and cart not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "book with this ID not found",
+			"msg":   "cart with this ID not found",
 		})
 	}
 
 	// Set user ID from JWT data of current user.
 	userID := claims.UserID
 
-	// Only the creator can delete his book.
+	// Only the creator can delete his cart.
 	if foundedCart.UserID == userID {
-		// Delete book by given ID.
+		// Delete cart by given ID.
 		if err := db.DeleteCartById(foundedCart.ID); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -451,7 +447,7 @@ func DeleteCart(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error": true,
-			"msg":   "permission denied, only the creator can delete his book",
+			"msg":   "permission denied, only the creator can delete his cart",
 		})
 	}
 }

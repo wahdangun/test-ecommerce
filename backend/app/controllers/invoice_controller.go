@@ -4,24 +4,25 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/create-go-app/fiber-go-template/app/models"
+	models "github.com/create-go-app/fiber-go-template/app/models"
 	"github.com/create-go-app/fiber-go-template/pkg/repository"
 	"github.com/create-go-app/fiber-go-template/pkg/utils"
 	"github.com/create-go-app/fiber-go-template/platform/database"
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetBook func gets book by given ID or 404 error.
-// @Description Get book by given ID.
-// @Summary get book by given ID
-// @Tags Book
+// Getinvoice func gets invoice by given ID or 404 error.
+// @Description Get invoice by given ID.
+// @Summary get invoice by given ID
+// @Tags invoice
 // @Accept json
 // @Produce json
-// @Param id path string true "Book ID"
-// @Success 200 {object} models.Book
-// @Router /v1/book/{id} [get]
+// @Param id path string true "invoice ID"
+// @Success 200 {object} models.Invoice
+// @Security ApiKeyAuth
+// @Router /v1/invoice/{id} [get]
 func GetInvoiceById(c *fiber.Ctx) error {
-	// Catch book ID from URL.
+	// Catch invoice ID from URL.
 	id := c.Params("id")
 	if id == "" {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -42,31 +43,39 @@ func GetInvoiceById(c *fiber.Ctx) error {
 	id_int, err := strconv.Atoi(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Order is not found",
-			"book":  nil,
+			"error":   true,
+			"msg":     "Order is not found",
+			"invoice": nil,
 		})
 	}
-	// Get book by ID.
-	book, err := db.GetInvoiceById(id_int)
+	// Get invoice by ID.
+	invoice, err := db.GetInvoiceById(id_int)
 	if err != nil {
-		// Return, if book not found.
+		// Return, if invoice not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Order is not found",
-			"book":  nil,
+			"error":   true,
+			"msg":     "Order is not found",
+			"invoice": nil,
 		})
 	}
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"book":  book,
+		"error":   false,
+		"msg":     nil,
+		"invoice": invoice,
 	})
 }
 
-// get invoices by id user
+// GetInvoicesByUserId func gets all exists invoice by user id in jwt claims.
+// @Description Get all exists invoice.
+// @Summary get all exists invoice
+// @Tags invoice
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Invoice
+// @Security ApiKeyAuth
+// @Router /v1/invoice [get]
 func GetInvoicesByUserId(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -81,7 +90,7 @@ func GetInvoicesByUserId(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current invoice.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -105,43 +114,40 @@ func GetInvoicesByUserId(c *fiber.Ctx) error {
 	}
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Order is not found" + err.Error(),
-			"book":  nil,
+			"error":   true,
+			"msg":     "Order is not found" + err.Error(),
+			"invoice": nil,
 		})
 	}
-	// Get book by ID.
-	book, err := db.GetInvoiceByUser(id)
+	// Get invoice by ID.
+	invoice, err := db.GetInvoiceByUser(id)
 	if err != nil {
-		// Return, if book not found.
+		// Return, if invoice not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   "Order is not found",
-			"book":  nil,
+			"error":   true,
+			"msg":     "Order is not found",
+			"invoice": nil,
 		})
 	}
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"book":  book,
+		"error":   false,
+		"msg":     nil,
+		"invoice": invoice,
 	})
 }
 
-// CreateBook func for creates a new book.
-// @Description Create a new book.
-// @Summary create a new book
-// @Tags Book
+// Createinvoice func for creates a new invoice.
+// @Description Create a new invoice.
+// @Summary create a new invoice
+// @Tags invoice
 // @Accept json
 // @Produce json
-// @Param title body string true "Title"
-// @Param author body string true "Author"
-// @Param user_id body string true "User ID"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
-// @Success 200 {object} models.Book
+// @Param cart_id body models.PayloadInvoice true "Cart IDs"
+// @Success 200 {object} models.Invoice
 // @Security ApiKeyAuth
-// @Router /v1/book [post]
+// @Router /v1/invoice [post]
 func CreateInvoice(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -156,7 +162,7 @@ func CreateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current invoice.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -168,7 +174,7 @@ func CreateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new invoice struct
 	payload := []models.PayloadInvoice{}
 	invoice := &models.Invoice{}
 
@@ -194,9 +200,9 @@ func CreateInvoice(c *fiber.Ctx) error {
 		foundedCart, err := db.GetCartById(v.Cart_id)
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": true,
-				"msg":   "Cart is not found",
-				"book":  nil,
+				"error":   true,
+				"msg":     "Cart is not found",
+				"invoice": nil,
 			})
 		}
 		invoice.InvoiceItems = append(invoice.InvoiceItems, models.InvoiceItem{ProductID: foundedCart.Product_id, Price: foundedCart.Price, Quantity: foundedCart.Quantity, Product: foundedCart.Title})
@@ -204,15 +210,15 @@ func CreateInvoice(c *fiber.Ctx) error {
 
 	}
 
-	// Create a new validator for a Book model.
+	// Create a new validator for a invoice model.
 	validate := utils.NewValidator()
 
-	// Set initialized default data for book:
+	// Set initialized default data for invoice:
 
 	invoice.UserID = claims.UserID
 	invoice.Status = "unpaid" // Default status is unpaid.
 
-	// Validate book fields.
+	// Validate invoice fields.
 	if err := validate.Struct(invoice); err != nil {
 		// Return, if some fields are not valid.
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -221,7 +227,7 @@ func CreateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create book by given model.
+	// Create invoice by given model.
 	if err := db.CreateInvoice(invoice); err != nil {
 		// Return status 500 and error message.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -235,27 +241,26 @@ func CreateInvoice(c *fiber.Ctx) error {
 
 	// Return status 200 OK.
 	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"book":  invoice,
+		"error":   false,
+		"msg":     nil,
+		"invoice": invoice,
 	})
 }
 
-// UpdateBook func for updates book by given ID.
-// @Description Update book.
-// @Summary update book
-// @Tags Book
+// Updateinvoice func for updates invoice by given ID.
+// @Description Update invoice.
+// @Summary update invoice
+// @Tags invoice
 // @Accept json
 // @Produce json
-// @Param id body string true "Book ID"
+// @Param id body string true "invoice ID"
 // @Param title body string true "Title"
-// @Param author body string true "Author"
 // @Param user_id body string true "User ID"
-// @Param book_status body integer true "Book status"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
+// @Param invoice_status body integer true "invoice status"
+// @Param invoice_attrs body models.InvoiceItem true "invoice items"
 // @Success 202 {string} status "ok"
 // @Security ApiKeyAuth
-// @Router /v1/book [put]
+// @Router /v1/invoice [put]
 func UpdateInvoice(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -270,7 +275,7 @@ func UpdateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set expiration time from JWT data of current book.
+	// Set expiration time from JWT data of current invoice.
 	expires := claims.Expires
 
 	// Checking, if now time greather than expiration from JWT.
@@ -282,10 +287,10 @@ func UpdateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set credential `book:update` from JWT data of current book.
-	credential := claims.Credentials[repository.BookUpdateCredential]
+	// Set credential `invoice:update` from JWT data of current invoice.
+	credential := claims.Credentials[repository.InvoiceUpdateCredential]
 
-	// Only book creator with `book:update` credential can update his book.
+	// Only invoice creator with `invoice:update` credential can update his invoice.
 	if !credential {
 		// Return status 403 and permission denied error message.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -294,7 +299,7 @@ func UpdateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
+	// Create new invoice struct
 	invoice := &models.Invoice{}
 
 	// Check, if received JSON data is valid.
@@ -316,27 +321,27 @@ func UpdateInvoice(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if book with given ID is exists.
+	// Checking, if invoice with given ID is exists.
 	foundedInvoice, err := db.GetInvoiceById(invoice.ID)
 	if err != nil {
-		// Return status 404 and book not found error.
+		// Return status 404 and invoice not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": true,
-			"msg":   "book with this ID not found",
+			"msg":   "invoice with this ID not found",
 		})
 	}
 
 	// Set user ID from JWT data of current user.
 	userID := claims.UserID
 
-	// Only the creator can delete his book.
+	// Only the creator can delete his invoice.
 	if foundedInvoice.UserID == userID {
-		// Set initialized default data for book:
+		// Set initialized default data for invoice:
 
-		// Create a new validator for a Book model.
+		// Create a new validator for a invoice model.
 		validate := utils.NewValidator()
 
-		// Validate book fields.
+		// Validate invoice fields.
 		if err := validate.Struct(invoice); err != nil {
 			// Return, if some fields are not valid.
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -345,7 +350,7 @@ func UpdateInvoice(c *fiber.Ctx) error {
 			})
 		}
 
-		// Update book by given ID.
+		// Update invoice by given ID.
 		if err := db.UpdateInvoice(foundedInvoice.ID, invoice.Status); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -38,6 +38,125 @@ definitions:
         minimum: 1
         type: integer
     type: object
+  models.Cart:
+    properties:
+      cart_status:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      price:
+        type: integer
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    - user_id
+    type: object
+  models.Invoice:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      invoice_items:
+        items:
+          $ref: '#/definitions/models.InvoiceItem'
+        type: array
+      status:
+        type: string
+      total:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - status
+    - total
+    - user_id
+    type: object
+  models.InvoiceItem:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      invoice_id:
+        type: integer
+      price:
+        type: integer
+      product:
+        type: string
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - price
+    - product
+    - product_id
+    - quantity
+    type: object
+  models.PayloadInvoice:
+    properties:
+      cart_id:
+        type: integer
+    type: object
+  models.Product:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      price:
+        type: integer
+      product_attrs:
+        $ref: '#/definitions/models.ProductAttrs'
+      product_status:
+        type: integer
+      quantity:
+        type: integer
+      title:
+        maxLength: 255
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - price
+    - product_attrs
+    - product_status
+    - quantity
+    - title
+    - user_id
+    type: object
+  models.ProductAttrs:
+    properties:
+      description:
+        type: string
+      picture:
+        type: string
+      rating:
+        maximum: 10
+        minimum: 1
+        type: integer
+    type: object
   models.User:
     properties:
       created_at:
@@ -231,6 +350,378 @@ paths:
       summary: get all exists books
       tags:
       - Books
+  /v1/cart:
+    delete:
+      consumes:
+      - application/json
+      description: Delete cart by given ID.
+      parameters:
+      - description: cart ID
+        in: body
+        name: id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: delete cart by given ID
+      tags:
+      - cart
+    get:
+      consumes:
+      - application/json
+      description: Get all exists cart.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cart'
+            type: array
+      summary: get all exists cart
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      description: Create a new cart.
+      parameters:
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: User ID
+        in: body
+        name: user_id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cart'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new cart
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      description: Update cart.
+      parameters:
+      - description: cart ID
+        in: body
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: User ID
+        in: body
+        name: user_id
+        required: true
+        schema:
+          type: string
+      - description: cart status
+        in: body
+        name: cart_status
+        required: true
+        schema:
+          type: integer
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: update cart
+      tags:
+      - cart
+  /v1/invoice:
+    get:
+      consumes:
+      - application/json
+      description: Get all exists invoice.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Invoice'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: get all exists invoice
+      tags:
+      - invoice
+    post:
+      consumes:
+      - application/json
+      description: Create a new invoice.
+      parameters:
+      - description: Cart IDs
+        in: body
+        name: cart_id
+        required: true
+        schema:
+          $ref: '#/definitions/models.PayloadInvoice'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Invoice'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new invoice
+      tags:
+      - invoice
+    put:
+      consumes:
+      - application/json
+      description: Update invoice.
+      parameters:
+      - description: invoice ID
+        in: body
+        name: id
+        required: true
+        schema:
+          type: string
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: User ID
+        in: body
+        name: user_id
+        required: true
+        schema:
+          type: string
+      - description: invoice status
+        in: body
+        name: invoice_status
+        required: true
+        schema:
+          type: integer
+      - description: invoice items
+        in: body
+        name: invoice_attrs
+        required: true
+        schema:
+          $ref: '#/definitions/models.InvoiceItem'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: update invoice
+      tags:
+      - invoice
+  /v1/invoice/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get invoice by given ID.
+      parameters:
+      - description: invoice ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Invoice'
+      security:
+      - ApiKeyAuth: []
+      summary: get invoice by given ID
+      tags:
+      - invoice
+  /v1/product:
+    delete:
+      consumes:
+      - application/json
+      description: Delete product by given ID.
+      parameters:
+      - description: product ID
+        in: body
+        name: id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: delete product by given ID
+      tags:
+      - product
+    post:
+      consumes:
+      - application/json
+      description: Create a new product.
+      parameters:
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: Price
+        in: body
+        name: price
+        required: true
+        schema:
+          type: integer
+      - description: Quantity
+        in: body
+        name: quantity
+        required: true
+        schema:
+          type: integer
+      - description: product attributes
+        in: body
+        name: product_attrs
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductAttrs'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: create a new product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Update product.
+      parameters:
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      - description: Price
+        in: body
+        name: price
+        required: true
+        schema:
+          type: integer
+      - description: Quantity
+        in: body
+        name: quantity
+        required: true
+        schema:
+          type: integer
+      - description: product status
+        in: body
+        name: product_status
+        required: true
+        schema:
+          type: integer
+      - description: product attributes
+        in: body
+        name: product_attrs
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductAttrs'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: update product
+      tags:
+      - product
+  /v1/product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get product by given ID.
+      parameters:
+      - description: product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+      summary: get product by given ID
+      tags:
+      - product
+  /v1/products:
+    get:
+      consumes:
+      - application/json
+      description: Get all exists products.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+      summary: get all exists products
+      tags:
+      - products
   /v1/token/renew:
     post:
       consumes:

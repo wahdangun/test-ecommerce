@@ -1,8 +1,8 @@
 .PHONY: clean critic security lint test build run
 
 APP_NAME = apiserver
-BUILD_DIR = I:/whatsappscrapping-go/test-ecommerce/backend/build
-MIGRATIONS_FOLDER =  I:/whatsappscrapping-go/test-ecommerce/backend/platform/migrations
+BUILD_DIR = ${CURDIR}/build
+MIGRATIONS_FOLDER =  ${CURDIR}/platform/migrations
 DATABASE_URL = mysql://root:mysqlpw@tcp(192.168.90.10:3306)/testing
 
 clean:
